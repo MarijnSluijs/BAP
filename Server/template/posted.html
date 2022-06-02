@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>All Data</title>
+    <style>
+        html,body{
+        font-family: "Helvetica", sans-serif;  
+        font-size: 1rem;
+        color: rgb(0, 0, 0);
+        margin: 0px;
+        }
+        .button{
+            font-family: "Montserrat", sans-serif;  
+            font-size: 1rem;
+            color: rgb(255, 255, 255);
+            width: 150px;
+            height: 35px;
+            border: none;
+            background-color: #00A6D6; /* Green */
+            left: 50%;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .buttonsearch{
+            font-family: "Montserrat", sans-serif;  
+            font-size: 1rem;
+            color: rgb(255, 255, 255);
+            width: 100px;
+            margin-left: 10px;
+            height: 35px;
+            border: none;
+            background-color: #00A6D6; /* Green */
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .buttonsmall{
+            font-family: "Montserrat", sans-serif;  
+            font-size: 1rem;
+            color: rgb(255, 255, 255);
+            border: none;
+            background-color: #00A6D6; /* Green */
+            cursor: pointer;
+            height: 30px;
+            border-radius: 5px;
+        }
+        .input{
+            font-family: "Montserrat", sans-serif;  
+            font-size: 1rem;
+            color: rgb(0, 0, 0);
+            width: 150px;
+            height: 29px;
+        }
+        h1 {
+            text-align: center;
+            color:#00A6D6;
+        }
+        h2 {
+            text-align: center;
+            color:#000000;
+        }
+
+        p {
+            text-align: left;
+        }
+        .titlediv {
+        border: 0px rgb(255, 255, 255);
+        background-color: rgb(255, 255, 255);
+        text-align: center;
+        box-shadow: 0px 10px 10px;
+        margin: 0px;
+        line-height: 30px;
+        height: 70px;
+        width: 100%;
+        top: 0px;
+        position:absolute;
+        }
+        div {
+            text-align: center;
+        }
+    </style>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='clock.png') }}">
+</head>
+<body>
+    <a class="button" href="{{ url_for('home') }}">Home</a>
+    {% for entry in allData %}
+    <p>Timestamp: {{entry._timestamp}} User: {{entry._user}} AcceX: {{entry._acceX}} AcceY: {{entry._acceY}} AcceZ: {{entry._acceZ}} GyroX: {{entry._gyroX}} GyroY: {{entry._gyroY}} GyroZ: {{entry._gyroZ}} Heart rate:{{entry._bpm}} Token: {{entry._initTime}} Label: {{entry._label}}</p>
+    {% endfor %}
+</body>
+</html>

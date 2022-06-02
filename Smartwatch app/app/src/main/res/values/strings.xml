@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">DataTransmission</string>
+    <!--
+    This string is used for square devices and overridden by hello_world in
+    values-round/strings.xml for round devices.
+    -->
+    <string name="hello_world">Hello Square World!</string>
+    <string name="title_activity_transmit">transmit</string>
+    <string name="title_activity_tranmit">TranmitActivity</string>
+    <string name="title_activity_request_id">RequestIdActivity</string>
+    <string name="when_first_using_the_app_fill_in_a_personal_id">When first using the app fill in a personal ID:</string>
+    <string name="id">ID</string>
+    <string name="press_record_to_start_a_recording_and_send_the_data_to_the_server">Press record to start a recording and send the data to the server</string>
+    <string name="record">Record</string>
+    <string name="confirm_id">Confirm ID</string>
+</resources>
