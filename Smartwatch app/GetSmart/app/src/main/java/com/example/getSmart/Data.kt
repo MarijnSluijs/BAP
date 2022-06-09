@@ -1,8 +1,5 @@
-package com.example.datatransmission
+package com.example.getSmart
 
-import com.google.gson.annotations.Expose
-import com.google.gson.annotations.SerializedName
-import com.squareup.moshi.Json
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 

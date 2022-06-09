@@ -1,4 +1,4 @@
-package com.example.datatransmission
+package com.example.getSmart
 
 import android.Manifest
 import android.app.Activity
@@ -6,16 +6,15 @@ import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
 import android.view.View
+import android.view.WindowManager
 import android.widget.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.example.datatransmission.R.id.ChangeIdButton
-import com.example.datatransmission.databinding.ActivityMainBinding
-import com.google.android.gms.wearable.Wearable
+import com.example.getSmart.R.id.ChangeIdButton
+import com.example.getSmart.R
+import com.example.getSmart.databinding.ActivityMainBinding
 import java.io.File
 import java.util.*
 
@@ -30,6 +29,8 @@ class MainActivity : Activity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         //Assign UI elements to values
         val recordText : TextView = findViewById(R.id.recordText)

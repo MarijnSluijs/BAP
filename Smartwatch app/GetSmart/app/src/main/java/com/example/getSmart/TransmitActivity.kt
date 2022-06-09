@@ -1,32 +1,20 @@
-package com.example.datatransmission
+package com.example.getSmart
 
-import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.ContentValues
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Bundle
-import android.util.Log
 import android.view.WindowManager
 import android.widget.Button
 import android.widget.TextView
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.wear.widget.SwipeDismissFrameLayout
-import com.example.datatransmission.databinding.ActivityTransmitBinding
-import org.w3c.dom.Text
+import com.example.getSmart.databinding.ActivityTransmitBinding
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.*
 import kotlin.concurrent.fixedRateTimer
-import kotlin.concurrent.timer
-import kotlin.concurrent.timerTask
 
 class TransmitActivity : Activity() , SensorEventListener{
 
@@ -52,8 +40,8 @@ class TransmitActivity : Activity() , SensorEventListener{
     private var stop: Boolean = false
 
     //Set samplingPeriod and send interval
-    private val samplingPeriod: Long = 50    //Sensor sampling period in ms
-    private val sendInterval: Int = 100       //Interval between batch of samples send to the server in milliseconds
+    private val samplingPeriod: Long = 20    //Sensor sampling period in ms
+    private val sendInterval: Int = 10000      //Interval between batch of samples send to the server in miliseconds
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -82,7 +70,6 @@ class TransmitActivity : Activity() , SensorEventListener{
         val dataSet = mutableListOf<Data>()
         var i=0
         var j = 0
-
         //Acquire sensor data every samplingPeriod and transmit data every transmitPeriod
         fixedRateTimer("timer", true, 100, samplingPeriod) {
             //Timer continues until stop recording button is clicked
@@ -99,38 +86,36 @@ class TransmitActivity : Activity() , SensorEventListener{
                     token = token,
                     label = activity
                 )
-                transmit.transmitData(data)
-
                 //dataSet is empty at first, dataSet.add adds new object to the list.
                 //The next sendInterval the data needs to be overwritten, so dataSet[i] = data is used.
-//                if(j == 0){
-//                    dataSet.add(data)
-//                } else {
-//                    dataSet[i] = data
-//                }
+                if(j == 0){
+                    dataSet.add(data)
+                } else {
+                    dataSet[i] = data
+                }
 
-//                //Transmit the data every sendInterval
-//                if (i == (((sendInterval)/samplingPeriod)-1).toInt()){
-//                    //Padding the array to 50 samples for testing the battery life
-////                    if(j == 0) {
-////                        while (i < 49) {
-////                            dataSet.add(data)
-////                            i++
-////                        }
-////                    }
-//                    Log.d("Array Size", dataSet.size.toString())
-//                    transmit.transmitData(dataSet)
-//                    i=0
-//                    j=1
-//                }else{
-//                    i++
-//                }
+                //Transmit the data every sendInterval
+                if (i == (((sendInterval)/samplingPeriod)-1).toInt()){
+                    //Padding the array to 50 samples for testing the battery life
+//                    if(j == 0) {
+//                        while (i < 49) {
+//                            dataSet.add(data)
+//                            i++
+//                        }
+//                    }
 
+                    transmit.transmitData(dataSet)
+                    i=0
+                    j=1
+                }else{
+                    i++
+                }
             } else {
                 this.cancel()
             }
         }
 
+        //Go back to the main activity when stop button is clicked
         val stopButton: Button = findViewById(R.id.stopButton)
         stopButton.setOnClickListener{
             stop = true
@@ -161,8 +146,6 @@ class TransmitActivity : Activity() , SensorEventListener{
         }
     }
 
-    override fun onBackPressed() {}
-
     // Receive sensor data
     override fun onSensorChanged(event: SensorEvent) {
 
@@ -190,14 +173,5 @@ class TransmitActivity : Activity() , SensorEventListener{
     override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
     }
 
-    // Continue the app after pausing
-    override fun onResume() {
-        super.onResume()
-
-    }
-
-    // Activity is paused when another action occurs
-    override fun onPause() {
-        super.onPause()
-    }
+    override fun onBackPressed() {}
 }
