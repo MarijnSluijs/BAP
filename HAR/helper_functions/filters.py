@@ -39,6 +39,5 @@ def plot_high_pass(fs=50, cutoff=0.3, order=5):
     plt.show()
 
 
-
 if __name__ == '__main__':
     plot_high_pass()
