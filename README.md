@@ -28,8 +28,7 @@ https://github.com/MarijnSluijs/BAP/tree/main/Server.
 4. Add MySQL database to the flask file flask_app.py. on line 20.
 5. Start hosting the server.
 
-The server can now be accessed using the website URL given by the web hosting service. An image
-of the website is shown in Figure A.2.
+The server can now be accessed using the website URL given by the web hosting service.
 
 ### Smartwatch application setup
 The smartwatch application is developed for the smartwatch Samsung Watch 4. To download the

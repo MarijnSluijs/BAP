@@ -1,0 +1,12 @@
+tensorflow
+seaborn
+matplotlib
+sklearn
+pandas
+numpy
+scipy
+PyWavelet
+flask
+flask_sqlalchemy
+sqlalchemy
+joblib
