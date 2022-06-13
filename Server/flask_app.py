@@ -17,18 +17,20 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 app = Flask(__name__, template_folder='template')
 
 # connecting to the MySQL database
-SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:L5CB49ijM00Q@localhost/users"
+SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:L5CB49ijM00Q@localhost/database_getsmart"
 app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI
 app.config["SQLALCHEMY_POOL_RECYCLE"] = 299
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
-# initialize x_test with zeros
+# initialize machine learning algorithm
 x = np.zeros((1,50, 6))
 k = 0
 sat_counter = 'X'
 prediction = 'Y'
-Model = init_model('classification/split_gru_128_64_acc96.h5')
+
+#Model = init_model('classification/split_gru_128_64_acc96.h5')
+Model = init_model('classification2/gru_reg_50hz_4seconds.h5')
 
 # initialize a table called datatab, _id is prime key, set automatically by order of entry, do not refer it
 class db1(db.Model):
@@ -57,32 +59,24 @@ def hello():
 def home():
     # renders the home page in index.html in folder 'template'
     SessionData = db1.query.order_by(desc(db1._timestamp)).group_by(db1._initTime).distinct()
-    #print(SessionData)
-    if request.method == 'POST':
-        
-        # if request.form['submit'] == 'See All Data':
-        #     return redirect(url_for('posted'))
 
+    if request.method == 'POST':
         if request.form['submit'] == 'Search':
             username = request.form['data1']
-            # if username == '':
-            #     return 'User Name Required'
-            return redirect(url_for('usersearch', username = username))
+            return redirect(url_for('usersessions', username = username))
         elif request.form['submit'] == 'direct_select':
+            username = request.form['username']
             token = request.form['timestamp']
-            return redirect(url_for('user', username = username, token = token))
+            return redirect(url_for('sessiondata', username = username, token = token))
         elif request.form['submit'] == 'download':
-            #username = request.form['username']
+            username = request.form['username']
             token = request.form['timestamp']
-            print(token)
-            return redirect(url_for('download', token = token))
+            return redirect(url_for('download', username=username, token = token))
         elif request.form['submit'] == 'viewUser':
             username = request.form['uniqueUserId']
-            return redirect(url_for('usersearch', username = username))
+            return redirect(url_for('usersessions', username = username))
         else:
-            #username = request.form['username']
             token = request.form['timestamp']
-            print(token)
             db1.query.filter_by(_initTime = token).delete()
             db.session.commit()
             now = datetime.now()
@@ -90,16 +84,16 @@ def home():
             # past = now
             past_time = past.strftime('%Y-%m-%d:%H:%M:%S.%f')
             chopped_time = past_time[:-3]
-            print(chopped_time, db1._timestamp)
             selectedData = db1.query.filter(db1._timestamp>=chopped_time).group_by(db1._user).distinct().all()
             
             uniqueUsers = db1.query.order_by(db1._timestamp).group_by(db1._user).distinct()
-            return render_template('index.html', selectedData = selectedData, SessionData = SessionData, uniqueUsers = uniqueUsers)
+            pred = db1.query.order_by(db1._timestamp)
+            return render_template('index.html', selectedData = selectedData, SessionData = SessionData, uniqueUsers = uniqueUsers, pred = pred)
         
     else:
         now = datetime.now()
         past = now + timedelta(hours = 0) - timedelta(minutes=1)
-        # past = now
+
         past_time = past.strftime('%Y-%m-%d:%H:%M:%S.%f')
         chopped_time = past_time[:-3]
 
@@ -107,41 +101,28 @@ def home():
         
         uniqueUsers = db1.query.order_by(db1._timestamp).group_by(db1._user).distinct()
         return render_template('index.html', selectedData = selectedData, SessionData = SessionData, uniqueUsers = uniqueUsers)
-
-# shows which users have been sending data in the last minute
-@app.route('/online')
-def online():
-    now = datetime.now()
-    past = now + timedelta(hours = 0) - timedelta(minutes=1)
-    # past = now
-    past_time = past.strftime('%Y-%m-%d:%H:%M:%S.%f')
-    chopped_time = past_time[:-3]
-
-    selectedData = db1.query.filter(db1._timestamp>=chopped_time).group_by(db1._user).distinct().all()
-    return render_template('plot.html', selectedData = selectedData)
-
+        
 # shows all distinct session tokens of the selected user
-@app.route('/usersearch', methods=['POST','GET'])
-def usersearch():
+@app.route('/usersessions', methods=['POST','GET'])
+def usersessions():
     username = request.args.get('username')
     selectedData = db1.query.order_by(desc(db1._timestamp)).filter_by(_user = username).group_by(db1._initTime).distinct()
     if request.method == 'POST':
         token = request.form['timestamp']
         if request.form['submit'] == 'direct_select':
-            return redirect(url_for('user', username = username, token = token))
+            return redirect(url_for('sessiondata', username = username, token = token))
         elif request.form['submit'] == 'download':
-            print(username, token)
             return redirect(url_for('download', username = username, token = token))
         else:
             db1.query.filter_by(_user = username, _initTime = token).delete()
             db.session.commit()
-            return render_template('searchuser.html', selectedData = selectedData)
+            return render_template('usersessions.html', selectedData = selectedData)
     else:
-        return render_template('searchuser.html', selectedData = selectedData)
+        return render_template('usersessions.html', selectedData = selectedData)
 
 # shows the search result, with a button that redirects to download
-@app.route('/user', methods=['POST','GET'])
-def user():
+@app.route('/sessiondata', methods=['POST','GET'])
+def sessiondata():
     # Request username and token of recording
     username = request.args.get('username')
     token = request.args.get('token')
@@ -159,45 +140,7 @@ def user():
         else:
             content = db1.query.order_by(desc(db1._timestamp))
 
-        return render_template('userdata.html', content = content)
-
-# shows all data in the table
-@app.route('/posted')
-def posted():
-    allData = db1.query.order_by(desc(db1._timestamp))
-    return render_template('posted.html', allData = allData)
-
-# ---------------------------------------------------------------------------
-# Json post old version
-# @app.route('/json/post', methods = ['POST'])
-# def json_post():
-#     # check if the post is json, if true store the data in database
-#     if request.is_json:
-#         req = request.get_json()
-#         # turns json into python data/dictionary
-#         _timestamp = req.get("timestamp")
-#         _user = req.get("user")
-#         _acceX = req.get("acceX")
-#         _acceY = req.get("acceY")
-#         _acceZ = req.get("acceZ")
-#         _gyroX = req.get("gyroX")
-#         _gyroY = req.get("gyroY")
-#         _gyroZ = req.get("gyroZ")
-#         _bpm = req.get("bpm")
-#         _initTime = req.get("token")
-#         _label = req.get("label")
-
-#         Package = db1(_timestamp=_timestamp, _user=_user,
-#         _acceX=_acceX, _acceY=_acceY, _acceZ=_acceZ,         _gyroX=_gyroX, _gyroY=_gyroY, _gyroZ=_gyroZ,
-#         _bpm=_bpm, _initTime=_initTime, _label=_label, _pred_label = prediction)
-#         db.session.add(Package)
-#         db.session.commit()
-#         return 'Json received', 200
-
-#     # if not json, return not received
-#     else:
-#         return 'Not received', 400
-
+        return render_template('sessiondata.html', content = content)
 
 # # Json post
 @app.route('/json/post', methods = ['POST'])
@@ -235,10 +178,7 @@ def json_post():
             _bpm=_bpm, _initTime=_initTime, _label=_label, _pred_label = prediction)
             db.session.add(Package)
             db.session.commit()
-                          
-
-        # end of for-loop
-
+            #print(_user, prediction, _user + prediction)              
         return 'Json received', 200
 
     # if not json, return not received
@@ -308,3 +248,53 @@ def download():
 # Run website on port 80
 if __name__ == "__main__":
 	app.run(host='0.0.0.0', port=80)
+
+
+# ---------------------------------------------------------------------------
+# Json post old version
+# @app.route('/json/post', methods = ['POST'])
+# def json_post():
+#     # check if the post is json, if true store the data in database
+#     if request.is_json:
+#         req = request.get_json()
+#         # turns json into python data/dictionary
+#         _timestamp = req.get("timestamp")
+#         _user = req.get("user")
+#         _acceX = req.get("acceX")
+#         _acceY = req.get("acceY")
+#         _acceZ = req.get("acceZ")
+#         _gyroX = req.get("gyroX")
+#         _gyroY = req.get("gyroY")
+#         _gyroZ = req.get("gyroZ")
+#         _bpm = req.get("bpm")
+#         _initTime = req.get("token")
+#         _label = req.get("label")
+
+#         Package = db1(_timestamp=_timestamp, _user=_user,
+#         _acceX=_acceX, _acceY=_acceY, _acceZ=_acceZ,         _gyroX=_gyroX, _gyroY=_gyroY, _gyroZ=_gyroZ,
+#         _bpm=_bpm, _initTime=_initTime, _label=_label, _pred_label = prediction)
+#         db.session.add(Package)
+#         db.session.commit()
+#         return 'Json received', 200
+
+#     # if not json, return not received
+#     else:
+#         return 'Not received', 400
+
+# shows all data in the table
+# @app.route('/posted')
+# def posted():
+#     allData = db1.query.order_by(desc(db1._timestamp))
+#     return render_template('posted.html', allData = allData)
+
+# shows which users have been sending data in the last minute
+# @app.route('/online')
+# def online():
+#     now = datetime.now()
+#     past = now + timedelta(hours = 0) - timedelta(minutes=1)
+    
+#     past_time = past.strftime('%Y-%m-%d:%H:%M:%S.%f')
+#     chopped_time = past_time[:-3]
+
+#     selectedData = db1.query.filter(db1._timestamp>=chopped_time).group_by(db1._user).distinct().all()
+#     return render_template('plot.html', selectedData = selectedData)

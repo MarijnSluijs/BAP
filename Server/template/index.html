@@ -18,7 +18,7 @@
             width: 150px;
             height: 35px;
             border: none;
-            background-color: #00A6D6; /* Green */
+            background-color: #00A6D6;
             left: 50%;
             cursor: pointer;
             border-radius: 5px;
@@ -31,7 +31,7 @@
             margin-left: 10px;
             height: 35px;
             border: none;
-            background-color: #00A6D6; /* Green */
+            background-color: #00A6D6; 
             cursor: pointer;
             border-radius: 5px;
         }
@@ -40,7 +40,7 @@
             font-size: 1rem;
             color: rgb(255, 255, 255);
             border: none;
-            background-color: #00A6D6; /* Green */
+            background-color: #00A6D6; 
             cursor: pointer;
             height: 30px;
             border-radius: 5px;
@@ -60,7 +60,6 @@
             text-align: center;
             color:#000000;
         }
-
         p {
             text-align: center;
         }
@@ -80,59 +79,51 @@
             text-align: center;
         }
     </style>
-    <link rel="shortcut icon" href="{{ url_for('static', filename='clock.png') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='getsmart.png') }}">
 </head>
+
 <body style="background-color:rgb(255, 255, 255);">
     <div class="">
-        <h1>Smartwatch sensor monitor</h1>
+        <h1><image   src="{{ url_for('static', filename='getsmart.png') }}" style="position:absolute;top:5px;left:5px"></image>GetSmart monitor</h1>
     </div>
-    <!--<p>Welcome to the smartwatch sensor monitor website</p>-->
-    
-    <form action="#" method="post">
-        <p><input class="button" type="submit" name="submit" value="See All Data" /></p>
-        
-    </form>
 
-    
     <div style="width: 100%; overflow: hidden;">
         <div style="background-color: rgb(255, 255, 255);width: 50%; float: left;"> 
             <h2>Active users <button style="margin-left:10px" class="button" onClick="window.location.reload();">Refresh</button></h2>
                 {% for entry in selectedData %}
-                <p>{{entry._user}}: Recording 🔴</p>
+                <p>{{entry._user}}: Recording 🔴, Prediction: {{entry._pred_label}}</p>
                 {% endfor %}
+
                 <h2 style="margin-top: 50px">User history</h2>
-                
                 {% for entry in uniqueUsers %}
                 <form action="#" method="post">
                 <input type="hidden" name="uniqueUserId" value={{entry._user}} />
                 <p>{{entry._user}}<button class="button" type="submit" name="submit" value="viewUser" style="margin-left:10px">View sessions</button></p>
                 </form>
                 {% endfor %}
-
         </div>
 
         <div style="background-color: rgb(255, 255, 255);width: 50%;margin-left: 50%;">
             <form action="#" method="post">
                 <h2 style="margin-left:20%;text-align:left">Sessions <input style="margin-left:10px"class="input" type="text" name="data1" placeholder="User name" /><input class="buttonsearch" type="submit" name="submit" value="Search" /></h2>
-                <div style="margin-left: 20%;overflow-y:scroll;overflow-x:hidden; height:500px;width:400px">
-                <p>----------------------------------------------------</p>
-                {% for entry in SessionData %}
+            </form>
+            <div style="margin-left: 20%;overflow-y:scroll;overflow-x:hidden; height:500px;width:400px">
+            <p>----------------------------------------------------</p>
+            {% for entry in SessionData %}
+            <form action="#" method="post">
                 <p>Session: {{entry._user}} {{entry._initTime}}</p>
-                
+                <input type="hidden" name="timestamp" value={{entry._initTime}} />
+                <input type="hidden" name="username" value={{entry._user}} />
                 <p>
-                    <input type="hidden" name="timestamp" value={{entry._initTime}} />
-                    <!--<input type="hidden" name="username" value={{entry._user}} />-->
-                    <!--<button type="submit" name="submit" value="direct_select">See Session</button>-->
+                    <button class="buttonsmall" type="submit" name="submit" value="direct_select">See Session</button>
                     <button class="buttonsmall" type="submit" name="submit" value="download">Download</button>
                     <button class="buttonsmall" type="submit" name="submit" value="delete_session">Delete Session</button>
                 </p>
-                <!--<input type="submit" name="direct_select" value={{entry._initTime}} />-->
             </form>
             <p>----------------------------------------------------</p>
             {% endfor %}
         </div>
         </div>
    </div>
-   <image   src="{{ url_for('static', filename='TUD.png') }}" style="width:200px;position:absolute;bottom:5px;left:5px"></image>
 </body>
 </html>
