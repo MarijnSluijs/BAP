@@ -5,11 +5,11 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 
 def init_model(name_model):
-    return tf.keras.models.load_model(f'trained_models/{name_model}')
+    return tf.keras.models.load_model(f'../HAR/trained_models/{name_model}')
 
 
 def predict(model, x):
     y = np.argmax(model(x), axis=-1)
     labels = ['A', 'B', 'C', 'D', 'E']
-    # ['walking', 'stairs', 'jogging', 'sitting', 'standing']
-    return labels[y[0]]
+    actions = ['walking', 'stairs', 'jogging', 'sitting', 'standing']
+    return actions[y[0]]
