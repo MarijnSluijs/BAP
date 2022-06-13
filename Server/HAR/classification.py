@@ -5,7 +5,8 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 
 def init_model(name_model):
-    return tf.keras.models.load_model(f'../HAR/trained_models/{name_model}')
+    return tf.keras.models.load_model(f'{os.path.abspath(os.getcwd())}\\HAR\\trained_models\\{name_model}')
+    #return tf.keras.models.load_model('/trained_models\\{name_model}')
 
 
 def predict(model, x):
