@@ -6,13 +6,23 @@ from datetime import datetime, timedelta
 from io import StringIO
 from flask import Flask, redirect, url_for, render_template, request, Response
 from flask_sqlalchemy import SQLAlchemy
-from HAR.classification import init_model, predict
-import tensorflow as tf
 from sqlalchemy import desc
 import numpy as np
-import os
+import argparse
+parser = argparse.ArgumentParser(description="this is the GetSmart platform setup")
+parser.add_argument("--ml", default=0, help="Set to 1 to enable human activity recognition (requires tensorflow)")
+args = parser.parse_args()
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+prediction = "NA"
+if args.ml:
+    import os
+    import tensorflow as tf
+    from HAR.classification import init_model, predict
+    os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+    x = np.zeros((1, 200, 6))
+    k = 0
+    # initialize machine learning algorithm
+    Model = init_model('fcn_reg_50Hz_4seconds')
 
 app = Flask(__name__, template_folder='template')
 
@@ -22,12 +32,6 @@ app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI
 app.config["SQLALCHEMY_POOL_RECYCLE"] = 299
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
-
-# initialize machine learning algorithm
-x = np.zeros((1, 200, 6))
-k = 0
-
-Model = init_model('fcn_reg_50Hz_4seconds')
 
 
 # initialize a table called datatab, _id is prime key, set automatically by order of entry, do not refer it
@@ -150,7 +154,7 @@ def sessiondata():
 # # Json post
 @app.route('/json/post', methods=['POST'])
 def json_post():
-    global x, k, sat_counter, Model, prediction
+    global prediction
     # check if the post is json, if true store the data in database
     if request.is_json:
         req = request.get_json()
@@ -171,12 +175,14 @@ def json_post():
 
             # # if no existing row is found make a new one
             # prediction part
-            x = np.roll(x, -1, axis=1)
-            x[0, -1, :] = [_acceX, _acceY, _acceZ, _gyroX, _gyroY, _gyroZ]
-            k += 1
-            if k == 50:
-                prediction = predict(Model, x)
-                k = 0
+            if args.ml:
+                global x, k, Model
+                x = np.roll(x, -1, axis=1)
+                x[0, -1, :] = [_acceX, _acceY, _acceZ, _gyroX, _gyroY, _gyroZ]
+                k += 1
+                if k == 50:
+                    prediction = predict(Model, x)
+                    k = 0
 
             Package = db1(_timestamp=_timestamp, _user=_user,
                           _acceX=_acceX, _acceY=_acceY, _acceZ=_acceZ,
